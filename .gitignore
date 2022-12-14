@@ -5,3 +5,6 @@
 /tools/logs/
 
 .idea
+
+__pycache__/
+datasets/
