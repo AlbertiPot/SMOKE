@@ -85,8 +85,8 @@ class SMOKEPredictor(nn.Module):
         _fill_fc_weights(self.regression_head)
 
     def forward(self, features):
-        head_class = self.class_head(features)
-        head_regression = self.regression_head(features)
+        head_class = self.class_head(features)  # torch.Size([1, 3, 96, 320]) 3个通道代表car, cyclist, pedestrain 三个类别 for each pixel of feature map size of 96*320
+        head_regression = self.regression_head(features)    # torch.Size([1, 8, 96, 320]) 8个回归值
 
         head_class = sigmoid_hm(head_class)
         # (N, C, H, W)

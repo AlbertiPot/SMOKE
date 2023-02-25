@@ -6,5 +6,7 @@
 
 .idea
 
+*.so
+
 __pycache__/
 datasets/

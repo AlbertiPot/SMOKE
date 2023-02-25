@@ -9,10 +9,10 @@ class FocalLoss(nn.Module):
         self.beta = beta
 
     def forward(self, prediction, target):
-        positive_index = target.eq(1).float()
-        negative_index = target.lt(1).float()
+        positive_index = target.eq(1).float()   # 正例样本  torch.Size([2, 3, 96, 320])
+        negative_index = target.lt(1).float()   # 负例样本index torch.Size([2, 3, 96, 320])
 
-        negative_weights = torch.pow(1 - target, self.beta)
+        negative_weights = torch.pow(1 - target, self.beta) # negative_weights
         loss = 0.
 
         positive_loss = torch.log(prediction) \

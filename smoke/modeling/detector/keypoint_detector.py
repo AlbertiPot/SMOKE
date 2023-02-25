@@ -33,8 +33,8 @@ class KeypointDetector(nn.Module):
         if self.training and targets is None:
             raise ValueError("In training mode, targets should be passed")
         images = to_image_list(images)
-        features = self.backbone(images.tensors)
-        result, detector_losses = self.heads(features, targets)
+        features = self.backbone(images.tensors)    # features.shape=torch.Size([1, 64, 96, 320]) B,C,H,W
+        result, detector_losses = self.heads(features, targets) 
 
         if self.training:
             losses = {}

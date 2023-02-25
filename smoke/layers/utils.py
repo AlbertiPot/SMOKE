@@ -91,10 +91,10 @@ def select_point_of_interest(batch, index, feature_maps):
     Returns:
 
     '''
-    w = feature_maps.shape[3]
-    if len(index.shape) == 3:
-        index = index[:, :, 1] * w + index[:, :, 0]
-    index = index.view(batch, -1)
+    w = feature_maps.shape[3]   # torch.Size([1, 8, 96, 320])
+    if len(index.shape) == 3:   # index torch.Size([1, 30, 2]) 30个目标的中心点投影到2D平面
+        index = index[:, :, 1] * w + index[:, :, 0] # 中心点纵坐标y * w + x = 总的像素index
+    index = index.view(batch, -1)   # torch.Size([1, 30, 1]) → torch.Size([1, 30])
     # [N, C, H, W] -----> [N, H, W, C]
     feature_maps = feature_maps.permute(0, 2, 3, 1).contiguous()
     channel = feature_maps.shape[-1]
@@ -103,6 +103,6 @@ def select_point_of_interest(batch, index, feature_maps):
     # expand index in channels
     index = index.unsqueeze(-1).repeat(1, 1, channel)
     # select specific features bases on POIs
-    feature_maps = feature_maps.gather(1, index.long())
+    feature_maps = feature_maps.gather(1, index.long()) # 提取中心点坐标对应的feature torch.Size([1, 30, 8]) 30个框对应的8个回归feature
 
     return feature_maps

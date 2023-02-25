@@ -155,7 +155,7 @@ class KITTIDataset(Dataset):
                 locs[0] *= -1
                 rot_y *= -1
 
-            point, box2d, box3d = encode_label(
+            point, box2d, box3d = encode_label( # point 中心点投影坐标
                 K, rot_y, a["dimensions"], locs
             )
             point = affine_transform(point, trans_mat)
@@ -173,11 +173,11 @@ class KITTIDataset(Dataset):
                 heat_map[cls] = draw_umich_gaussian(heat_map[cls], point_int, radius)
 
                 cls_ids[i] = cls
-                regression[i] = box3d
+                regression[i] = box3d   # 回归目标是8个点坐标
                 proj_points[i] = point_int
                 p_offsets[i] = p_offset
                 dimensions[i] = np.array(a["dimensions"])
-                locations[i] = locs
+                locations[i] = locs #中心点坐标
                 rotys[i] = rot_y
                 reg_mask[i] = 1 if not affine else 0
                 flip_mask[i] = 1 if not affine and flipped else 0

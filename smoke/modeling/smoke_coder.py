@@ -22,15 +22,15 @@ def encode_label(K, ry, dims, locs):
                         [0, 1, 0],
                         [-np.sin(ry), 0, np.cos(ry)]])
     corners_3d = np.matmul(rot_mat, corners_3d)
-    corners_3d += np.array([x, y, z]).reshape([3, 1])
+    corners_3d += np.array([x, y, z]).reshape([3, 1])   # (3, 8)
 
     loc_center = np.array([x, y - h / 2, z])
     proj_point = np.matmul(K, loc_center)
-    proj_point = proj_point[:2] / proj_point[2]
+    proj_point = proj_point[:2] / proj_point[2] # x/z, y/z  [u,v]
 
-    corners_2d = np.matmul(K, corners_3d)
-    corners_2d = corners_2d[:2] / corners_2d[2]
-    box2d = np.array([min(corners_2d[0]), min(corners_2d[1]),
+    corners_2d = np.matmul(K, corners_3d)   
+    corners_2d = corners_2d[:2] / corners_2d[2]     # [2,8] 8个角点的uv
+    box2d = np.array([min(corners_2d[0]), min(corners_2d[1]),      # 8个角点uv中最小的为框左下角，最大的为右上角
                       max(corners_2d[0]), max(corners_2d[1])])
 
     return proj_point, box2d, corners_3d
@@ -109,10 +109,10 @@ class SMOKECoder():
         N = rotys.shape[0]
         ry = self.rad_to_matrix(rotys, N)
 
-        dims = dims.view(-1, 1).repeat(1, 8)
-        dims[::3, :4], dims[2::3, :4] = 0.5 * dims[::3, :4], 0.5 * dims[2::3, :4]
-        dims[::3, 4:], dims[2::3, 4:] = -0.5 * dims[::3, 4:], -0.5 * dims[2::3, 4:]
-        dims[1::3, :4], dims[1::3, 4:] = 0., -dims[1::3, 4:]
+        dims = dims.view(-1, 1).repeat(1, 8)    # [N,3] [N*3,8] 每3列代表1个框，每行代表h的8重复值
+        dims[::3, :4], dims[2::3, :4] = 0.5 * dims[::3, :4], 0.5 * dims[2::3, :4]   # l,w 正轴
+        dims[::3, 4:], dims[2::3, 4:] = -0.5 * dims[::3, 4:], -0.5 * dims[2::3, 4:] # l,w 负轴
+        dims[1::3, :4], dims[1::3, 4:] = 0., -dims[1::3, 4:]                        # 顶点位于上平面，-h位于下平面
         index = torch.tensor([[4, 0, 1, 2, 3, 5, 6, 7],
                               [4, 5, 0, 1, 6, 7, 2, 3],
                               [4, 5, 6, 0, 1, 2, 3, 7]]).repeat(N, 1).to(device=device)
@@ -126,7 +126,7 @@ class SMOKECoder():
         '''
         Transform depth offset to depth
         '''
-        depth = depths_offset * self.depth_ref[1] + self.depth_ref[0]
+        depth = depths_offset * self.depth_ref[1] + self.depth_ref[0]   # 预测偏移值 * 方差 + 均值
 
         return depth
 
@@ -210,8 +210,8 @@ class SMOKECoder():
         '''
 
         locations = locations.view(-1, 3)
-        rays = torch.atan(locations[:, 0] / (locations[:, 2] + 1e-7))
-        alphas = torch.atan(vector_ori[:, 0] / (vector_ori[:, 1] + 1e-7))
+        rays = torch.atan(locations[:, 0] / (locations[:, 2] + 1e-7))   # 观测角，用gt中心点坐标计算得到观测角
+        alphas = torch.atan(vector_ori[:, 0] / (vector_ori[:, 1] + 1e-7))   # 用预测地 sin alpha 和cos alpha 计算alpha
 
         # get cosine value positive and negtive index.
         cos_pos_idx = (vector_ori[:, 1] >= 0).nonzero()
